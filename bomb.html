@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <style>
+        * {
+            text-align: center;
+        }
+
+        #board {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #board tr td {
+            border: 1px solid white;
+            background: #34da79;
+            width: 16px;
+            height: 16px;
+            text-align: center;
+        }
+
+        #board tr td.clicked {
+            background: #6c5ee7;
+        }
+
+        #board tr td.mine {
+            background: #FF0000;
+        }
+
+        #timer {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+    </style>
+</head>
+
+<body>
+    <h1>지뢰찾기</h1>
+    <div id="timer">타이머: 0</div>
+    <table id="board"></table>
+    <button onclick="genGrid();">새로운 게임</button>
+    <script>
+        let grid = document.getElementById("board");
+        let timerElement = document.getElementById("timer");
+        let timer = 0;
+        let timerInterval;
+
+        function genGrid() {
+            clearInterval(timerInterval);
+            timer = 0;
+            timerElement.innerText = "타이머: " + timer;
+            grid.innerHTML = "";
+            for (let i = 0; i < 8; i++) {
+                let row = grid.insertRow(i);
+                for (let j = 0; j < 8; j++) {
+                    let cell = row.insertCell(j);
+                    cell.onclick = function () { clickBox(this); };
+                    let mine = document.createAttribute("mine");
+                    if (Math.random() < 0.3)
+                        mine.value = "true";
+                    else
+                        mine.value = "false";
+                    cell.setAttributeNode(mine);
+                }
+            }
+            startTimer();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timer++;
+                timerElement.innerText = "타이머: " + timer;
+            }, 1000);
+        }
+
+        function clickBox(cell) {
+            if (cell.getAttribute("mine") == "true") {
+                clearInterval(timerInterval);
+                cell.className = "mine";
+                alert("게임이 종료되었습니다.");
+                
+            } else {
+                cell.className = "clicked";
+            }
+        }
+    </script>
+</body>
+
+</html>
