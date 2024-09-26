@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <style>
+        * {
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            justify-content: center;
+            background-color: #f0f0f0;
+        }
+
+        #container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #board {
+            margin-right: 20px;
+        }
+
+        #board tr td {
+            border: 1px solid white;
+            background: #34da79;
+            width: 16px;
+            height: 16px;
+            text-align: center;
+        }
+
+        #board tr td.clicked {
+            background: #6c5ee7;
+        }
+
+        #board tr td.mine {
+            background: #FF0000;
+        }
+
+        #timer {
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
+
+        #history {
+            font-size: 18px;
+            margin-right: 20px;
+            border: 3px solid #000; /* 테두리 크기 */
+            padding: 100px 10px 10px; /* 상단 패딩 100px, 나머지 여백 설정 */
+            background-color: #fff; /* 배경색 추가 */
+            max-height: 200px; /* 최대 높이 설정 */
+            overflow-y: auto; /* 스크롤 추가 */
+            display: flex;
+            flex-direction: column; 
+            position: relative; 
+        }
+
+        #history-title {
+            font-weight: bold; 
+            position: absolute; 
+            top: 10px; 
+            left: 10px; 
+        }
+    </style>
+</head>
+
+<body>
+    <h1>지뢰찾기</h1>
+    <div id="container">
+        <div id="history">
+            <div id="history-title">기록</div> <!-- 기록 제목 추가 -->
+        </div>
+        <table id="board"></table>
+        <div id="timer">타이머: 0초</div>
+    </div>
+    <button onclick="genGrid();">새로운 게임</button>
+    <script>
+        let grid = document.getElementById("board");
+        let timerDisplay = document.getElementById("timer");
+        let historyDisplay = document.getElementById("history");
+        let timer;
+        let seconds = 0;
+
+        genGrid();
+
+        function genGrid() { 
+            grid.innerHTML = "";
+            seconds = 0; // 타이머 초기화
+            timerDisplay.innerText = "타이머: 0초"; // 타이머 표시 초기화
+            clearInterval(timer); // 기존 타이머 클리어
+            timer = setInterval(updateTimer, 1000); // 타이머 시작
+
+            for (let i = 0; i < 8; i++) {
+                let row = grid.insertRow(i);
+                for (let j = 0; j < 8; j++) {
+                    let cell = row.insertCell(j);
+                    cell.onclick = function () { clickBox(this); };
+                    let mine = document.createAttribute("mine");
+                    if (Math.random() < 0.3)
+                        mine.value = "true";
+                    else
+                        mine.value = "false";
+                    cell.setAttributeNode(mine);
+                }
+            }
+        }
+
+        function clickBox(cell) {
+            if (cell.getAttribute("mine") == "true") {
+                cell.className = "mine";
+                alert("게임이 종료되었습니다. 소요 시간: " + seconds + "초");
+                historyDisplay.innerText += seconds + "초\n"; // 타이머 기록 추가
+                clearInterval(timer); // 게임 종료 시 타이머 중지
+            } else {
+                cell.className = "clicked";
+            }
+        }
+
+        function updateTimer() {
+            seconds++;
+            timerDisplay.innerText = "타이머: " + seconds + "초";
+        }
+    </script>
+</body>
+
+</html>
