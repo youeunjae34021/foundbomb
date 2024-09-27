@@ -54,11 +54,11 @@
         #history {
             font-size: 18px;
             margin-right: 20px;
-            border: 3px solid #000; /* 테두리 크기 */
-            padding: 100px 10px 10px; /* 상단 패딩 100px, 나머지 여백 설정 */
-            background-color: #fff; /* 배경색 추가 */
-            max-height: 200px; /* 최대 높이 설정 */
-            overflow-y: auto; /* 스크롤 추가 */
+            border: 3px solid #000;
+            padding: 100px 10px 10px; 
+            background-color: #fff; 
+            max-height: 200px;
+            overflow-y: auto;
             display: flex;
             flex-direction: column; 
             position: relative; 
@@ -77,7 +77,7 @@
     <h1>지뢰찾기</h1>
     <div id="container">
         <div id="history">
-            <div id="history-title">기록</div> <!-- 기록 제목 추가 -->
+            <div id="history-title">기록</div> 
         </div>
         <table id="board"></table>
         <div id="timer">타이머: 0초</div>
@@ -89,43 +89,90 @@
         let historyDisplay = document.getElementById("history");
         let timer;
         let seconds = 0;
+        let totalCells = 0; 
+        let clickedCells = 0; 
 
         genGrid();
 
-        function genGrid() { 
+        function genGrid() {  // 타이머를 설정하고 맵에 100/19의 확률로 8*8맵에 지뢰를 생성합니다
             grid.innerHTML = "";
-            seconds = 0; // 타이머 초기화
-            timerDisplay.innerText = "타이머: 0초"; // 타이머 표시 초기화
-            clearInterval(timer); // 기존 타이머 클리어
-            timer = setInterval(updateTimer, 1000); // 타이머 시작
+            seconds = 0; 
+            timerDisplay.innerText = "타이머: 0초"; 
+            clearInterval(timer); 
+            timer = setInterval(updateTimer, 1000);
+
+       
+            let mines = Array(8).fill().map(() => Array(8).fill(false));
+            totalCells = 0; 
+            clickedCells = 0; 
 
             for (let i = 0; i < 8; i++) {
                 let row = grid.insertRow(i);
                 for (let j = 0; j < 8; j++) {
                     let cell = row.insertCell(j);
                     cell.onclick = function () { clickBox(this); };
-                    let mine = document.createAttribute("mine");
-                    if (Math.random() < 0.3)
-                        mine.value = "true";
-                    else
-                        mine.value = "false";
-                    cell.setAttributeNode(mine);
+
+                    
+                    if (Math.random() < 0.19) {
+                        mines[i][j] = true; 
+                        cell.setAttribute("mine", "true");
+                    } else {
+                        cell.setAttribute("mine", "false");
+                        totalCells++; 
+                    }
                 }
             }
         }
 
-        function clickBox(cell) {
-            if (cell.getAttribute("mine") == "true") {
+        function clickBox(cell) { //지뢰판을 클릭했을때 지뢰면 게임 종료, 아니라면 가까이에 있는 지뢰의 거리를 표시한다
+            if (cell.getAttribute("mine") === "true") {
                 cell.className = "mine";
                 alert("게임이 종료되었습니다. 소요 시간: " + seconds + "초");
-                historyDisplay.innerText += seconds + "초\n"; // 타이머 기록 추가
-                clearInterval(timer); // 게임 종료 시 타이머 중지
+                
+                clearInterval(timer);
+                disableBoard(); 
             } else {
+                let distance = getClosestMineDistance(cell);
+                cell.innerText = distance;
                 cell.className = "clicked";
+                clickedCells++; 
+
+               
+                if (clickedCells === totalCells) {
+                    historyDisplay.innerHTML += "<div>" + seconds + "초</div>"; 
+                    alert("모든 안전한 셀을 찾았습니다! 소요 시간: " + seconds + "초");
+                    disableBoard(); 
+                }
             }
         }
 
-        function updateTimer() {
+        function getClosestMineDistance(cell) {
+            const cellIndex = cell.cellIndex;
+            const rowIndex = cell.parentNode.rowIndex;
+            let closestDistance = Infinity;
+
+            for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < 8; j++) {
+                    const boardCell = grid.rows[i].cells[j];
+                    if (boardCell.getAttribute("mine") === "true") {
+                        const distance = Math.abs(i - rowIndex) + Math.abs(j - cellIndex);
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                        }
+                    }
+                }
+            }
+            return closestDistance === Infinity ? "없음" : closestDistance;
+        }
+
+        function disableBoard() {       //지뢰를 클릭했을때 더이상 지뢰판과 상호작용을 하지 못하게 하는 코드입니다
+            const cells = grid.getElementsByTagName("td");
+            for (let cell of cells) {
+                cell.onclick = null; 
+            }
+        }
+
+        function updateTimer() { // 1초마다 시간이 지가는 코드
             seconds++;
             timerDisplay.innerText = "타이머: " + seconds + "초";
         }
